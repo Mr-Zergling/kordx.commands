@@ -14,6 +14,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -134,7 +136,7 @@ class CommandProcessor(private val data: CommandProcessorData) : CoroutineScope 
      * Starts listening to the [source] launched in [CommandProcessorData.dispatcher].
      */
     fun <S> addSource(source: EventSource<S>): Job {
-        return source.events.onEach {
+        return source.events.buffer(Channel.UNLIMITED).onEach {
             try {
                 handle(it, source.context.cast())
             } catch (exception: Exception) {
